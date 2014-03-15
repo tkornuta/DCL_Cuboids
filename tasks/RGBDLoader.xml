@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Task>
+	<!-- reference task information -->
+	<Reference>
+		<Author>
+			<name>Tomasz Kornuta</name>
+			<link></link>
+		</Author>
+		
+		<Description>
+			<brief>Simple Kinect viewer</brief>
+			<full>Displays two windows with RGB and depth immges.</full>	
+		</Description>
+	</Reference>
+	
+	<!-- task definition -->
+	<Subtasks>
+		<Subtask name="Processing">
+			<Executor name="Processing"  period="1">
+				<Component name="RGBSequence" type="CvBasic:Sequence" priority="1" bump="0">
+<!--					<param name="sequence.directory">%[TASK_LOCATION]%/../../data/rgbd/</param> -->
+					<param name="sequence.directory">./</param>
+					<param name="sequence.pattern">.*_rgb.png</param>
+                                        <param name="mode.loop">1</param>
+                                        <param name="mode.iterate">0</param>
+				</Component>
+				<Component name="DepthSequence" type="CvBasic:Sequence" priority="2" bump="0">
+<!--					<param name="sequence.directory">%[TASK_LOCATION]%/../../data/rgbd/</param> -->
+					<param name="sequence.directory">./</param>
+					<param name="sequence.pattern">.*_depth.png</param>
+                                        <param name="mode.loop">1</param>
+                                        <param name="mode.iterate">0</param>
+				</Component>
+				 
+				
+				<Component name="ProcRain" type="CameraNUI:DepthConverter" priority="3" bump="0">
+					<param name="depth_mode">rainbow</param>
+				</Component>
+				
+			</Executor>
+		</Subtask>
+		
+		<Subtask name="Visualisation">
+			<Executor name="Exec2" period="0.01">
+				<Component name="RGBDViewer" type="CameraNUI:RGBDViewer" priority="1" bump="0">
+				</Component>
+				<Component name="Window" type="CvBasic:CvWindow" priority="2" bump="0">
+					<param name="count">1</param>
+					<param name="title">Rainbow</param>
+				</Component>
+			</Executor>
+		</Subtask>	
+	
+	</Subtasks>
+		
+	<!-- pipes connecting datastreams -->
+	<DataStreams>
+		<Source name="RGBSequence.out_img">
+			<sink>RGBDViewer.in_rgb</sink>		
+		</Source>
+		<Source name="DepthSequence.out_img">
+			<sink>ProcRain.in_depth</sink>
+			<sink>RGBDViewer.in_depth</sink>		
+		</Source>
+		<Source name="ProcRain.out_depth">
+			<sink>Window.in_img</sink>		
+		</Source>
+	</DataStreams>
+</Task>
+
+
+
+

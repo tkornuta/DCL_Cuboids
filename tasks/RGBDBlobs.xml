@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Task>
+	<!-- reference task information -->
+	<Reference>
+		<Author>
+			<name>Maciej Stefańczyk</name>
+			<link></link>
+		</Author>
+		
+		<Description>
+			<brief>Multimodal segmentation test.</brief>
+			<full>Multimodal segmentation of dense depth maps with associated color information.</full>	
+		</Description>
+	</Reference>
+	
+	<!-- task definition -->
+	<Subtasks>
+		<Subtask name="Processing">
+                        <Executor name="Exec1"  period="2">
+                        <Component name="RGBSequence" type="CvBasic:Sequence" priority="1" bump="0">
+                                        <param name="sequence.directory">~/Vincze_segmenter/OSD-0.2/image_color</param>
+                                <param name="sequence.directory">./</param>
+                                <param name="sequence.pattern">.*.png</param>
+                                <param name="mode.loop">1</param>
+                                <param name="mode.iterate">0</param>
+                        </Component>
+                        <Component name="DepthSequence" type="CvBasic:Sequence" priority="2" bump="0">
+                                        <param name="sequence.directory"></param>
+                                        <param name="sequence.directory">~/Vincze_segmenter/OSD-0.2-depth/disparity</param>
+                                <param name="sequence.pattern">.*_depth.png</param>
+                                <param name="mode.loop">1</param>
+                                <param name="mode.iterate">0</param>
+                        </Component>
+
+                                <Component name="DepthConverter" type="CameraNUI:DepthConverter" priority="2" bump="0">
+                                        <param name="depth_mode">point_cloud</param>
+                                </Component>
+
+                                <Component name="NormalEstimator" type="Depth:DepthNormalEstimator" priority="3" bump="0">
+                                </Component>
+
+                                <Component name="Segmentation" type="Depth:Segmentation" priority="4" bump="0">
+                                        <param name="ang_diff">50.0</param>
+                                        <param name="dist_diff">0.4</param>
+                                        <param name="color_diff">0.1</param>
+                                        <param name="threshold">1</param>
+                                        <param name="std_diff">6</param>
+                                </Component>
+                                <Component name="Detector" type="CvBlobs:BlobExtractor" priority="5" bump="0">
+                                    <param name="min_size">5000</param>
+                                </Component>
+                        </Executor>
+                </Subtask>
+		
+		<Subtask name="Visualisation">
+			<Executor name="Exec2" period="0.2">
+				<Component name="Window" type="CvBasic:CvWindow" priority="1" bump="5">
+					<param name="count">4</param>
+					<param name="title">RGB,Normals,Labels,Blobs</param>
+				</Component>
+			</Executor>
+		</Subtask>	
+	
+	</Subtasks>
+	
+	<!-- pipes connecting datastreams -->
+	<DataStreams>
+                <Source name="RGBSequence.out_img">
+			<sink>Window.in_img0</sink>	
+			<sink>Segmentation.in_color</sink>	
+		</Source>
+                <Source name="DepthSequence.out_img">
+			<sink>DepthConverter.in_depth</sink>
+			<sink>NormalEstimator.in_depth</sink>
+		</Source>
+		<Source name="DepthConverter.out_depth">
+			<sink>Segmentation.in_depth</sink>		
+		</Source>
+		<Source name="NormalEstimator.out_normals">
+			<sink>Segmentation.in_normals</sink>		
+		</Source>
+		<Source name="NormalEstimator.out_img">
+			<sink>Window.in_img1</sink>		
+		</Source>
+		<Source name="Segmentation.out_img">
+			<sink>Window.in_img2</sink>		
+		        <sink>Detector.in_img</sink>
+		</Source>
+        <Source name="Detector.out_img">
+            <sink>Window.in_img3</sink>
+        </Source>
+
+	</DataStreams>
+</Task>
+
+
+
+
